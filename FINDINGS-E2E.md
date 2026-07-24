@@ -3,7 +3,7 @@
 **Bounty:** `copperhead create` end-to-end test + smoke harness ($50)
 **Author:** AI agent via Pusuge
 **Date:** 2026-07-25
-**PR:** https://github.com/chouhanindustries/copperhead/pull/73
+**PR:** #
 
 ## Summary
 
@@ -67,7 +67,8 @@ to make the ERC check optional when kicad-cli is absent, or to mock it in the
 integration test runner.
 
 **Suggested fix:** Wrap `runErc` in the schematic `isComplete` with a
-+The offline test suite mocks `runErc` rather than weakening the production completion gate.
+try/catch that falls back to `true` (or logs a warning) when kicad-cli is
+unavailable, similar to how `renderStageArtifacts` is best-effort.
 
 ### NOTE 2: Pre-seeding artifacts for CI
 
