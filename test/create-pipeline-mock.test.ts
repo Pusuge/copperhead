@@ -115,21 +115,30 @@ describe('create pipeline: runCreate integration (mocked agent + KiCad)', () => 
     }
   });
 
-  it('runCreate stops at schematic when KiCad mock indicates failure', async () => {
+  it('runCreate stops at schematic when ERC fails (false-green prevention)', async () => {
     const { repo, cleanup } = await tempFixtureRepo();
     try {
-      let callCount = 0;
+      // Override runErc to fail specifically for the schematic stage
+      const { runErc } = await import('../src/kicad/cli.js');
+      (runErc as any).mockImplementation(async (schPath: string) => {
+        if (schPath && (schPath.includes('hardware') || schPath.endsWith('.kicad_sch')))
+          return { ok: false, violations: ['ERC: unconnected pin'], rules: {} };
+        return { ok: true, violations: [], rules: {} };
+      });
+
+      // Agent writes artifacts for all stages, including schematic
       mockRunAgentLoop.mockImplementation(async (opts) => {
-        callCount++;
-        if (callCount <= 3) await writeStageArtifacts(opts.repoRoot, opts.request);
+        await writeStageArtifacts(opts.repoRoot, opts.request);
         return ok();
       });
+
       const briefPath = path.join(repo, 'brief.md');
       await writeFile(briefPath, '# Test\n', 'utf8');
       const lines: string[] = [];
       const res = await runCreate({ repoRoot: repo, briefPath, model: 'gpt-5', log: (s) => lines.push(s) });
       expect(res.ok).toBe(false);
       expect(res.completed).toEqual(['spec-seed', 'architecture', 'part-selection']);
+      expect(res.error).toBeDefined();
     } finally {
       await cleanup();
     }

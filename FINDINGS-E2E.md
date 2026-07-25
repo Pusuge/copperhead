@@ -20,9 +20,18 @@ consisted of:
 3. **Smoke-test script** (manual-tests/smoke-create.sh): drives the pipeline
    using LLM response cache replay for deterministic CI runs.
 
+## Priority legend
+
+| Level | Meaning |
+|-------|---------|
+| **P0** | Must fix before merge — blocks acceptance criteria |
+| **P1** | Should fix — degrades bounty deliverable quality |
+| **P2** | Nice to fix — affects edge cases or optional features |
+| **P3** | Observation — no action required, noted for completeness |
+
 ## Findings
 
-### BLOCKER: Response-cached smoke harness must use LLM cache, not disable it
+### BLOCKER: Response-cached smoke harness must use LLM cache, not disable it  [P1]
 
 - **Where:** `manual-tests/smoke-create.sh` line 41
 - **Symptom:** The smoke script sets `COPPERHEAD_NO_CACHE=1`, which forces live
@@ -34,7 +43,7 @@ consisted of:
   a recorded fixture before running.
 - **Status:** Fixed (COPPERHEAD_NO_CACHE removed, cache-friendly defaults used).
 
-### BLOCKER: e2e test suite calls isComplete directly instead of driving runCreate
+### BLOCKER: e2e test suite calls isComplete directly instead of driving runCreate  [P0]
 
 - **Where:** `test/create-e2e.test.ts`
 - **Symptom:** The test suite calls each stage's `isComplete` function directly
@@ -60,7 +69,7 @@ consisted of:
 - **Priority:** P2 — affects users with custom libraries but not the common case.
 - **Status:** Fixed with test coverage.
 
-### NOTE: Schematic stage requires KiCad for full offline testing
+### NOTE: Schematic stage requires KiCad for full offline testing  [P1]
 
 - **Where:** `src/commands/create.ts:78-101`
 - **Symptom:** The schematic stage `isComplete` calls `runErc()` which requires
